@@ -173,6 +173,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/instructor", async (req, res) => {
+      const query = { role: "instructor" };
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // cart Collection apis
 
     app.get("/carts", async (req, res) => {
