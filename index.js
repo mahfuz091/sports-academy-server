@@ -173,9 +173,16 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/instructor", async (req, res) => {
+    app.get("/instructors", async (req, res) => {
       const query = { role: "instructor" };
       const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -191,6 +198,7 @@ async function run() {
       const result = await cartCollection.find(query).toArray();
       res.send(result);
     });
+
     app.delete("/carts/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -201,6 +209,13 @@ async function run() {
     app.post("/carts", async (req, res) => {
       const item = req.body;
       console.log(item);
+      const query = { selectClassId: item.selectClassId };
+      const existingCart = await cartCollection.findOne(query);
+
+      if (existingCart) {
+        return res.send({ message: "user already exists" });
+      }
+
       const result = await cartCollection.insertOne(item);
       res.send(result);
     });
