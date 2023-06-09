@@ -28,13 +28,28 @@ async function run() {
 
     const classesCollection = client.db("sportscampDB").collection("classes");
     const cartCollection = client.db("sportscampDB").collection("carts");
+    const usersCollection = client.db("sportscampDB").collection("users");
 
     app.get("/all-classes", async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
 
-    // cart Collection
+    // users related apis
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email }
+      const existingUser = await usersCollection.findOne(query);
+
+      if (existingUser) {
+        return res.send({ message: 'user already exists' })
+      }
+
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // cart Collection apis
 
     app.get("/carts", async (req, res) => {
       const email = req.query.email;
