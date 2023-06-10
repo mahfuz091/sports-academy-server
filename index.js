@@ -97,23 +97,21 @@ async function run() {
       res.send(result);
     });
     app.get("/pending-classes", async (req, res) => {
-
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
 
-    app.get('/my-classes', async (req, res) => {
-      const query = { email: req.query.email }
+    app.get("/my-classes", async (req, res) => {
+      const query = { email: req.query.email };
       const result = await classesCollection.find(query).toArray();
       res.send(result);
+    });
 
-    })
-
-    app.post('/all-classes', verifyJWT, verifyInstructor, async (req, res) => {
+    app.post("/all-classes", verifyJWT, verifyInstructor, async (req, res) => {
       const newItem = req.body;
-      const result = await classesCollection.insertOne(newItem)
+      const result = await classesCollection.insertOne(newItem);
       res.send(result);
-    })
+    });
 
     app.patch("/all-classes/approved/:id", async (req, res) => {
       const id = req.params.id;
@@ -121,11 +119,9 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          status: "approved"
-
+          status: "approved",
         },
       };
-
 
       const result = await classesCollection.updateOne(filter, updateDoc);
       res.send(result);
@@ -136,11 +132,9 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          status: "denied"
-
+          status: "denied",
         },
       };
-
 
       const result = await classesCollection.updateOne(filter, updateDoc);
       res.send(result);
@@ -169,6 +163,14 @@ async function run() {
 
       const result = await usersCollection.insertOne(user);
       return res.send(result);
+    });
+
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const query = { email: email };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
     });
 
     app.get("/users/admin/:email", verifyJWT, async (req, res) => {
