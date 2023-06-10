@@ -55,7 +55,7 @@ async function run() {
     app.post("/jwt", (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "2h",
       });
 
       res.send({ token });
@@ -81,7 +81,7 @@ async function run() {
       const email = req.decoded.email;
       const query = { email: email };
       const user = await usersCollection.findOne(query);
-      if (user?.role !== "admin") {
+      if (user?.role !== "instructor") {
         return res
           .status(403)
           .send({ error: true, message: "forbidden message" });
@@ -93,6 +93,12 @@ async function run() {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
+
+    app.post('/all-classes', verifyJWT, verifyInstructor, async (req, res) => {
+      const newItem = req.body;
+      const result = await classesCollection.insertOne(newItem)
+      res.send(result);
+    })
 
     // users related apis
     app.get(
