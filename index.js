@@ -321,8 +321,14 @@ async function run() {
         console.log("Seat not found");
         return;
       }
+      const updateEnrollStudent = updateClass.student + 1;
       const updatedAvailableSeats = updateClass.seats - 1;
-      const update = { $set: { seats: updatedAvailableSeats } };
+      const update = {
+        $set: {
+          seats: updatedAvailableSeats,
+          student: updateEnrollStudent,
+        },
+      };
       const result = await classesCollection.updateOne(filter, update);
       res.send(result);
     });
