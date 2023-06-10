@@ -5,6 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -52,6 +53,7 @@ async function run() {
     const classesCollection = client.db("sportscampDB").collection("classes");
     const cartCollection = client.db("sportscampDB").collection("carts");
     const usersCollection = client.db("sportscampDB").collection("users");
+    const paymentCollection = client.db("sportscampDB").collection("payments");
 
     // jwt apis
     app.post("/jwt", (req, res) => {
@@ -115,7 +117,7 @@ async function run() {
 
     app.patch("/all-classes/approved/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -128,7 +130,7 @@ async function run() {
     });
     app.patch("/all-classes/deny/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -167,7 +169,7 @@ async function run() {
 
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
-      console.log(email);
+
       const query = { email: email };
       const result = await usersCollection.findOne(query);
       res.send(result);
@@ -188,7 +190,7 @@ async function run() {
 
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -215,7 +217,7 @@ async function run() {
 
     app.patch("/users/instructor/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -252,6 +254,12 @@ async function run() {
       const result = await cartCollection.find(query).toArray();
       return res.send(result);
     });
+    app.get("/carts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await cartCollection.findOne(query);
+      res.send(result);
+    });
 
     app.delete("/carts/:id", async (req, res) => {
       const id = req.params.id;
@@ -262,7 +270,7 @@ async function run() {
 
     app.post("/carts", async (req, res) => {
       const item = req.body;
-      console.log(item);
+
       const query = { selectClassId: item.selectClassId };
       const existingCart = await cartCollection.findOne(query);
 
@@ -273,6 +281,52 @@ async function run() {
       const result = await cartCollection.insertOne(item);
       return res.send(result);
     });
+
+    // create payment intent
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
+    app.post("/payments", verifyJWT, async (req, res) => {
+      const payment = req.body;
+
+      const id = payment.id;
+      const insertResult = await paymentCollection.insertOne(payment);
+
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const deleteResult = await cartCollection.deleteOne(query);
+
+      res.send({ insertResult, deleteResult });
+    });
+
+    app.patch("/all-classes/seats/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      const updateClass = await classesCollection.findOne(filter);
+      if (!updateClass) {
+        // Handle case when the seat is not found
+        console.log("Seat not found");
+        return;
+      }
+      const updatedAvailableSeats = updateClass.seats - 1;
+      const update = { $set: { seats: updatedAvailableSeats } };
+      const result = await classesCollection.updateOne(filter, update);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
