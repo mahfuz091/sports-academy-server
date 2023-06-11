@@ -303,8 +303,6 @@ async function run() {
       const id = payment.id;
       console.log(id);
 
-
-
       const insertResult = await paymentCollection.insertOne(payment);
 
       const query = {
@@ -336,13 +334,13 @@ async function run() {
       const result = await classesCollection.updateOne(filter, update);
       res.send(result);
     });
-    app.patch('/update-classes/:id', async (req, res) => {
+    app.patch("/update-classes/:id", async (req, res) => {
       const body = req.body;
       const id = req.params.id;
-      const filter = { _id: new ObjectId(id) }
+      const filter = { _id: new ObjectId(id) };
       console.log(body);
-      const price = parseFloat(body.price)
-      const seats = parseFloat(body.seats)
+      const price = parseFloat(body.price);
+      const seats = parseFloat(body.seats);
       const update = {
         $set: {
           seats: seats,
@@ -352,29 +350,42 @@ async function run() {
 
       const result = await classesCollection.updateOne(filter, update);
       res.send(result);
+    });
 
-    })
-
-    app.get('/payments', verifyJWT, async (req, res) => {
-      const result = await paymentCollection.find().toArray()
+    app.get("/payments", verifyJWT, async (req, res) => {
+      const result = await paymentCollection.find().toArray();
       res.send(result);
-    })
+    });
 
-    app.get('/enroll-classes', async (req, res) => {
+    app.get("/enroll-classes", async (req, res) => {
       const email = req.query.email;
       console.log(email);
-      const query = { email: email }
-      const result = await paymentCollection.find(query).sort({ date: -1 }).toArray()
-      const id = result.id
-      const filter = { id: id }
-      const enrollClass = await classesCollection.find(filter).toArray()
+      const query = { email: email };
+      const result = await paymentCollection
+        .find(query)
+        .sort({ date: -1 })
+        .toArray();
+      const id = result.id;
+      const filter = { id: id };
+      const enrollClass = await classesCollection.find(filter).toArray();
 
       return res.send({ result, enrollClass });
-    })
+    });
 
-    app.get('my-enroll-classes',)
+    app.patch("/update-feedback/:id", async (req, res) => {
+      const id = req.params.id;
+      const body = req.body;
+      console.log(body);
 
-
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          feedback: body.feedback,
+        },
+      };
+      const result = await classesCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
