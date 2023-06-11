@@ -302,12 +302,7 @@ async function run() {
 
       const id = payment.id;
       console.log(id);
-      // const filter = { id: id };
 
-      // const existingPayment = await paymentCollection.findOne(filter);
-      // if (existingPayment) {
-      //   return res.send({ message: "Already Enrolled This Class" })
-      // }
 
 
       const insertResult = await paymentCollection.insertOne(payment);
@@ -341,7 +336,26 @@ async function run() {
       const result = await classesCollection.updateOne(filter, update);
       res.send(result);
     });
-    app.get('/payments', async (req, res) => {
+    app.patch('/update-classes/:id', async (req, res) => {
+      const body = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      console.log(body);
+      const price = parseFloat(body.price)
+      const seats = parseFloat(body.seats)
+      const update = {
+        $set: {
+          seats: seats,
+          price: price,
+        },
+      };
+
+      const result = await classesCollection.updateOne(filter, update);
+      res.send(result);
+
+    })
+
+    app.get('/payments', verifyJWT, async (req, res) => {
       const result = await paymentCollection.find().toArray()
       res.send(result);
     })
@@ -350,9 +364,17 @@ async function run() {
       const email = req.query.email;
       console.log(email);
       const query = { email: email }
-      const result = await paymentCollection.find(query).toArray()
-      res.send(result);
+      const result = await paymentCollection.find(query).sort({ date: -1 }).toArray()
+      const id = result.id
+      const filter = { id: id }
+      const enrollClass = await classesCollection.find(filter).toArray()
+
+      return res.send({ result, enrollClass });
     })
+
+    app.get('my-enroll-classes',)
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
