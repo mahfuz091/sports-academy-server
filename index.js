@@ -301,6 +301,15 @@ async function run() {
       const payment = req.body;
 
       const id = payment.id;
+      console.log(id);
+      // const filter = { id: id };
+
+      // const existingPayment = await paymentCollection.findOne(filter);
+      // if (existingPayment) {
+      //   return res.send({ message: "Already Enrolled This Class" })
+      // }
+
+
       const insertResult = await paymentCollection.insertOne(payment);
 
       const query = {
@@ -308,7 +317,7 @@ async function run() {
       };
       const deleteResult = await cartCollection.deleteOne(query);
 
-      res.send({ insertResult, deleteResult });
+      return res.send({ insertResult, deleteResult });
     });
 
     app.patch("/all-classes/seats/:id", async (req, res) => {
@@ -334,6 +343,14 @@ async function run() {
     });
     app.get('/payments', async (req, res) => {
       const result = await paymentCollection.find().toArray()
+      res.send(result);
+    })
+
+    app.get('/enroll-classes', async (req, res) => {
+      const email = req.query.email;
+      console.log(email);
+      const query = { email: email }
+      const result = await paymentCollection.find(query).toArray()
       res.send(result);
     })
 
