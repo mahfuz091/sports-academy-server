@@ -51,7 +51,9 @@ async function run() {
     // await client.connect();
 
     const classesCollection = client.db("sportscampDB").collection("classes");
-    const cartCollection = client.db("sportscampDB").collection("carts");
+    const bookedClassCollection = client
+      .db("sportscampDB")
+      .collection("booked-classes");
     const usersCollection = client.db("sportscampDB").collection("users");
     const paymentCollection = client.db("sportscampDB").collection("payments");
 
@@ -244,41 +246,41 @@ async function run() {
 
     // cart Collection apis
 
-    app.get("/carts", async (req, res) => {
+    app.get("/booked-classes", async (req, res) => {
       const email = req.query.email;
 
       if (!email) {
         return res.send([]);
       }
       const query = { email: email };
-      const result = await cartCollection.find(query).toArray();
+      const result = await bookedClassCollection.find(query).toArray();
       return res.send(result);
     });
-    app.get("/carts/:id", async (req, res) => {
+    app.get("/booked-classes/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await cartCollection.findOne(query);
+      const result = await bookedClassCollection.findOne(query);
       res.send(result);
     });
 
-    app.delete("/carts/:id", async (req, res) => {
+    app.delete("/booked-classes/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await cartCollection.deleteOne(query);
+      const result = await bookedClassCollection.deleteOne(query);
       res.send(result);
     });
 
-    app.post("/carts", async (req, res) => {
+    app.post("/booked-classes", async (req, res) => {
       const item = req.body;
 
       const query = { selectClassId: item.selectClassId };
-      const existingCart = await cartCollection.findOne(query);
+      const existingCart = await bookedClassCollection.findOne(query);
 
       if (existingCart) {
         return res.send({ message: "user already exists" });
       }
 
-      const result = await cartCollection.insertOne(item);
+      const result = await bookedClassCollection.insertOne(item);
       return res.send(result);
     });
 
@@ -308,7 +310,7 @@ async function run() {
       const query = {
         _id: new ObjectId(id),
       };
-      const deleteResult = await cartCollection.deleteOne(query);
+      const deleteResult = await bookedClassCollection.deleteOne(query);
 
       return res.send({ insertResult, deleteResult });
     });
