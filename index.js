@@ -123,8 +123,9 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/all-classes/approved/:id", verifyAdmin, async (req, res) => {
+    app.patch("/all-classes/approved/:id", async (req, res) => {
       const id = req.params.id;
+      console.log(id);
 
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -136,7 +137,7 @@ async function run() {
       const result = await classesCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-    app.patch("/all-classes/deny/:id", verifyAdmin, async (req, res) => {
+    app.patch("/all-classes/deny/:id", async (req, res) => {
       const id = req.params.id;
 
       const filter = { _id: new ObjectId(id) };
