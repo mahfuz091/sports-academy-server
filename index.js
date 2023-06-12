@@ -123,7 +123,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/all-classes/approved/:id", async (req, res) => {
+    app.patch("/all-classes/approved/:id", verifyAdmin, async (req, res) => {
       const id = req.params.id;
 
       const filter = { _id: new ObjectId(id) };
@@ -136,7 +136,7 @@ async function run() {
       const result = await classesCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-    app.patch("/all-classes/deny/:id", async (req, res) => {
+    app.patch("/all-classes/deny/:id", verifyAdmin, async (req, res) => {
       const id = req.params.id;
 
       const filter = { _id: new ObjectId(id) };
@@ -196,7 +196,7 @@ async function run() {
       return res.send(result);
     });
 
-    app.patch("/users/admin/:id", async (req, res) => {
+    app.patch("/users/admin/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
 
       const filter = { _id: new ObjectId(id) };
