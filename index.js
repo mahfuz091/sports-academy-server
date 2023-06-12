@@ -100,6 +100,12 @@ async function run() {
       const result = await classesCollection.find(query).toArray();
       res.send(result);
     });
+
+    app.get('/popular-classes', async (req, res) => {
+      const result = await classesCollection.find().sort({ student: -1 }).limit(6).toArray()
+      res.send(result);
+    })
+
     app.get("/pending-classes", async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
