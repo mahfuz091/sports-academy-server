@@ -417,7 +417,6 @@ async function run() {
       res.send({
         revenue,
         student,
-
         instructor,
         classes,
         orders
@@ -429,18 +428,31 @@ async function run() {
       const emailQuery = { email: email, status: 'approved' }
       const instructorQuery = { instructorEmail: email }
       const classes = await classesCollection.countDocuments(emailQuery)
-
       const students = await paymentCollection.countDocuments(instructorQuery)
-
-
-
-
       const payments = await paymentCollection.find(instructorQuery).toArray();
       const revenue = payments.reduce((sum, payment) => sum + payment.price, 0)
 
       res.send({
         classes,
         students,
+        revenue,
+      })
+
+    })
+
+    app.get('/student-stat', async (req, res) => {
+      const email = req.query.email
+      const emailQuery = { email: email }
+
+      const bookedClasses = await bookedClassCollection.countDocuments(emailQuery)
+      const enrollClasses = await paymentCollection.countDocuments(emailQuery)
+      const payments = await paymentCollection.find(emailQuery).toArray();
+      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0)
+
+      res.send({
+
+        bookedClasses,
+        enrollClasses,
 
 
         revenue,
