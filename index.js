@@ -308,6 +308,7 @@ async function run() {
 
     app.post("/payments", verifyJWT, async (req, res) => {
       const payment = req.body;
+      console.log(payment);
 
       const id = payment.id;
       console.log(id);
@@ -395,6 +396,60 @@ async function run() {
       const result = await classesCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+
+    // dashboard home
+    app.get('/admin-stats', async (req, res) => {
+
+      const studentquery = { role: 'student' };
+      const instructorquery = { role: 'instructor' }
+      const student = await usersCollection.countDocuments(studentquery);
+
+      const instructor = await usersCollection.countDocuments(instructorquery);
+      const classes = await classesCollection.estimatedDocumentCount();
+      const orders = await paymentCollection.estimatedDocumentCount();
+
+
+
+      const payments = await paymentCollection.find().toArray();
+      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0)
+
+      res.send({
+        revenue,
+        student,
+
+        instructor,
+        classes,
+        orders
+      })
+    })
+
+    app.get('/instructor-stat', async (req, res) => {
+      const email = req.query.email
+      const emailQuery = { email: email, status: 'approved' }
+      const instructorQuery = { instructorEmail: email }
+      const classes = await classesCollection.countDocuments(emailQuery)
+
+      const students = await paymentCollection.countDocuments(instructorQuery)
+
+
+
+
+      const payments = await paymentCollection.find(instructorQuery).toArray();
+      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0)
+
+      res.send({
+        classes,
+        students,
+
+
+        revenue,
+
+
+      })
+
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
