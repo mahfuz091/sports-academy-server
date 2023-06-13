@@ -101,12 +101,16 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/popular-classes', async (req, res) => {
-      const result = await classesCollection.find().sort({ student: -1 }).limit(6).toArray()
+    app.get("/popular-classes", async (req, res) => {
+      const result = await classesCollection
+        .find()
+        .sort({ student: -1 })
+        .limit(6)
+        .toArray();
       res.send(result);
-    })
+    });
 
-    app.get("/pending-classes", async (req, res) => {
+    app.get("/pending-classes", verifyJWT, verifyAdmin, async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
@@ -362,24 +366,28 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/payments", verifyJWT, async (req, res) => {
+    app.get("/payments", async (req, res) => {
       const result = await paymentCollection.find().toArray();
       res.send(result);
     });
 
     app.get("/enroll-classes", async (req, res) => {
       const email = req.query.email;
-      console.log(email);
+
       const query = { email: email };
       const result = await paymentCollection
         .find(query)
         .sort({ date: -1 })
         .toArray();
-      const id = result.id;
-      const filter = { id: id };
-      const enrollClass = await classesCollection.find(filter).toArray();
 
-      return res.send({ result, enrollClass });
+      const allClass = await classesCollection.find().toArray();
+      const id = result.map((item) => item.selectClassId);
+      // const id = result.selectClassId;
+      // const idQuery = { email: };
+      // const enrollClass = await classesCollection.find(idQuery).toArray();
+      const enrollClass = id.map((i) => allClass.find((item) => item._id == i));
+
+      return res.send({ enrollClass, result });
     });
 
     app.patch("/update-feedback/:id", async (req, res) => {
@@ -397,71 +405,63 @@ async function run() {
       res.send(result);
     });
 
-
     // dashboard home
-    app.get('/admin-stats', async (req, res) => {
-
-      const studentquery = { role: 'student' };
-      const instructorquery = { role: 'instructor' }
+    app.get("/admin-stats", async (req, res) => {
+      const studentquery = { role: "student" };
+      const instructorquery = { role: "instructor" };
       const student = await usersCollection.countDocuments(studentquery);
 
       const instructor = await usersCollection.countDocuments(instructorquery);
       const classes = await classesCollection.estimatedDocumentCount();
       const orders = await paymentCollection.estimatedDocumentCount();
 
-
-
       const payments = await paymentCollection.find().toArray();
-      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0)
+      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0);
 
       res.send({
         revenue,
         student,
         instructor,
         classes,
-        orders
-      })
-    })
+        orders,
+      });
+    });
 
-    app.get('/instructor-stat', async (req, res) => {
-      const email = req.query.email
-      const emailQuery = { email: email, status: 'approved' }
-      const instructorQuery = { instructorEmail: email }
-      const classes = await classesCollection.countDocuments(emailQuery)
-      const students = await paymentCollection.countDocuments(instructorQuery)
+    app.get("/instructor-stat", async (req, res) => {
+      const email = req.query.email;
+      const emailQuery = { email: email, status: "approved" };
+      const instructorQuery = { instructorEmail: email };
+      const classes = await classesCollection.countDocuments(emailQuery);
+      const students = await paymentCollection.countDocuments(instructorQuery);
       const payments = await paymentCollection.find(instructorQuery).toArray();
-      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0)
+      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0);
 
       res.send({
         classes,
         students,
         revenue,
-      })
+        payments,
+      });
+    });
 
-    })
+    app.get("/student-stat", async (req, res) => {
+      const email = req.query.email;
+      const emailQuery = { email: email };
 
-    app.get('/student-stat', async (req, res) => {
-      const email = req.query.email
-      const emailQuery = { email: email }
-
-      const bookedClasses = await bookedClassCollection.countDocuments(emailQuery)
-      const enrollClasses = await paymentCollection.countDocuments(emailQuery)
+      const bookedClasses = await bookedClassCollection.countDocuments(
+        emailQuery
+      );
+      const enrollClasses = await paymentCollection.countDocuments(emailQuery);
       const payments = await paymentCollection.find(emailQuery).toArray();
-      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0)
+      const revenue = payments.reduce((sum, payment) => sum + payment.price, 0);
 
       res.send({
-
         bookedClasses,
         enrollClasses,
 
-
         revenue,
-
-
-      })
-
-    })
-
+      });
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
