@@ -188,7 +188,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+    app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
 
       if (req.decoded.email !== email) {
@@ -215,7 +215,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
+    app.get("/users/instructor/:email", async (req, res) => {
       const email = req.params.email;
 
       if (req.decoded.email !== email) {
@@ -284,11 +284,10 @@ async function run() {
     app.post("/booked-classes", async (req, res) => {
       const item = req.body;
 
-
       const existingCart = await bookedClassCollection.findOne({
         selectClassId: item.selectClassId,
-        email: item.email
-      })
+        email: item.email,
+      });
 
       if (existingCart) {
         return res.send({ message: "already select that class" });
@@ -316,9 +315,7 @@ async function run() {
     app.post("/payments", verifyJWT, async (req, res) => {
       const payment = req.body;
 
-
       const id = payment.id;
-
 
       const insertResult = await paymentCollection.insertOne(payment);
 
@@ -438,10 +435,10 @@ async function run() {
       const revenue = payments.reduce((sum, payment) => sum + payment.price, 0);
 
       const student = await classesCollection.find(emailQuery).toArray();
-      const totalStudent = student.reduce((sum, student) => sum + student.student, 0);
-
-
-
+      const totalStudent = student.reduce(
+        (sum, student) => sum + student.student,
+        0
+      );
 
       res.send({
         classes,
