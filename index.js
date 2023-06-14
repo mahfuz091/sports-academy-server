@@ -285,14 +285,18 @@ async function run() {
       const item = req.body;
 
       const query = { selectClassId: item.selectClassId };
-      const existingCart = await bookedClassCollection.findOne(query);
+      const emailQuery = { email: item.email }
+      const existingCart = await bookedClassCollection.findOne({
+        selectClassId: item.selectClassId,
+        email: item.email
+      })
 
       if (existingCart) {
-        return res.send({ message: "user already exists" });
+        return res.send({ message: "already select that class" });
       }
 
       const result = await bookedClassCollection.insertOne(item);
-      return res.send(result);
+      res.send(result);
     });
 
     // create payment intent
