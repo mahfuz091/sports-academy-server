@@ -284,8 +284,7 @@ async function run() {
     app.post("/booked-classes", async (req, res) => {
       const item = req.body;
 
-      const query = { selectClassId: item.selectClassId };
-      const emailQuery = { email: item.email }
+
       const existingCart = await bookedClassCollection.findOne({
         selectClassId: item.selectClassId,
         email: item.email
@@ -386,9 +385,7 @@ async function run() {
 
       const allClass = await classesCollection.find().toArray();
       const id = result.map((item) => item.selectClassId);
-      // const id = result.selectClassId;
-      // const idQuery = { email: };
-      // const enrollClass = await classesCollection.find(idQuery).toArray();
+
       const enrollClass = id.map((i) => allClass.find((item) => item._id == i));
 
       return res.send({ enrollClass, result });
@@ -440,10 +437,17 @@ async function run() {
       const payments = await paymentCollection.find(instructorQuery).toArray();
       const revenue = payments.reduce((sum, payment) => sum + payment.price, 0);
 
+      const student = await classesCollection.find(emailQuery).toArray();
+      const totalStudent = student.reduce((sum, student) => sum + student.student, 0);
+
+
+
+
       res.send({
         classes,
         students,
         revenue,
+        totalStudent,
         payments,
       });
     });
