@@ -315,10 +315,10 @@ async function run() {
 
     app.post("/payments", verifyJWT, async (req, res) => {
       const payment = req.body;
-      console.log(payment);
+
 
       const id = payment.id;
-      console.log(id);
+
 
       const insertResult = await paymentCollection.insertOne(payment);
 
