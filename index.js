@@ -103,7 +103,7 @@ async function run() {
 
     app.get("/popular-classes", async (req, res) => {
       const result = await classesCollection
-        .find()
+        .find({ status: "approved" })
         .sort({ student: -1 })
         .limit(6)
         .toArray();
