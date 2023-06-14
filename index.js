@@ -188,7 +188,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users/admin/:email", async (req, res) => {
+    app.get("/users/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
 
       if (req.decoded.email !== email) {
@@ -215,7 +215,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users/instructor/:email", async (req, res) => {
+    app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
 
       if (req.decoded.email !== email) {
