@@ -267,7 +267,7 @@ async function run() {
       const result = await bookedClassCollection.find(query).toArray();
       return res.send(result);
     });
-    app.get("/booked-classes/:id", async (req, res) => {
+    app.get("/booked-classes/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await bookedClassCollection.findOne(query);
